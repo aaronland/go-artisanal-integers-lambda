@@ -3,11 +3,11 @@ package client
 // untested, still...
 
 import (
-	"encoding/json"
 	"github.com/aaronland/go-artisanal-integers"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
+	"strconv"
 )
 
 type LambdaClient struct {
@@ -37,7 +37,6 @@ func (cl *LambdaClient) NextInt() (int64, error) {
 	input := &lambda.InvokeInput{
 		FunctionName:   aws.String(cl.lambda_func),
 		InvocationType: aws.String("RequestResponse"),
-		LogType:        aws.String("Tail"),
 	}
 
 	rsp, err := cl.service.Invoke(input)
@@ -46,27 +45,8 @@ func (cl *LambdaClient) NextInt() (int64, error) {
 		return -1, err
 	}
 
-	/*
+	str_i := string(rsp.Payload)
+	i, err := strconv.ParseInt(str_i, 10, 64)
 
-	if *rsp.StatusCode != 200 {
-		return -1, errors.New(string(result))
-	}
-		enc_result := *rsp.LogResult
-
-		result, err := base64.StdEncoding.DecodeString(enc_result)
-
-		if err != nil {
-			return -1, err
-		}
-	*/
-
-	var int Integer
-
-	err = json.Unmarshal(rsp.Payload, &int)
-
-	if err != nil {
-		return -1, err
-	}
-
-	return int.Integer, nil
+	return i, nil
 }
